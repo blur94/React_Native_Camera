@@ -1,15 +1,7 @@
 import { Link, Stack, useFocusEffect } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  FlatList,
-  Button,
-} from "react-native";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import React, { useCallback, useState } from "react";
+import { Pressable, StyleSheet, View, Image, FlatList } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import { getMediaType, MediaType } from "../utils/media";
 import { VideoDisplay } from "../components/VideoDisplay";
@@ -21,9 +13,6 @@ interface Media {
 }
 
 export default function HomePage() {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [count, setCount] = useState(0);
   const [images, setImages] = useState<Media[]>([]);
 
   const loadFiles = async () => {
