@@ -1,20 +1,56 @@
-import { Link, useNavigation, Stack } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View, Image, Button } from "react-native";
+import { Link, Stack, useFocusEffect } from "expo-router";
+import React, { useCallback, useRef, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  FlatList,
+} from "react-native";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import { getMediaType, MediaType } from "../utils/media";
+import { VideoDisplay } from "../components/VideoDisplay";
+
+interface Media {
+  name: string;
+  uri: string;
+  type: MediaType;
+}
 
 export default function HomePage() {
-  const navigation = useNavigation();
-
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [count, setCount] = useState(0);
+  const [images, setImages] = useState<Media[]>([]);
+
+  const loadFiles = async () => {
+    if (!FileSystem.documentDirectory) return;
+    const files = await FileSystem.readDirectoryAsync(
+      FileSystem.documentDirectory
+    );
+
+    setImages(
+      files.map((file) => ({
+        name: file,
+        uri: `${FileSystem.documentDirectory}${file}`,
+        type: getMediaType(file),
+      }))
+    );
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFiles();
+    }, [])
+  );
 
   //   useEffect(() => {
-  //     navigation.setOptions({ headerShown: false });
-  //   }, [navigation]);
+  //     loadFiles();
+  //   }, []);
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View style={{ flex: 1 }}>
       <Stack.Screen
         options={{
           title: "Home",
@@ -47,12 +83,46 @@ export default function HomePage() {
         }}
       />
 
-      <Text style={{ fontSize: 20, fontWeight: "500" }}>Home Page</Text>
-      <Text style={{ fontSize: 15, fontWeight: "500" }}>Count: {count}</Text>
+      <Text style={{ fontSize: 15, fontWeight: "500", marginBlock: 20 }}>
+        Count: {count}
+      </Text>
 
-      <Link href="/image-1">Image 1</Link>
-      <Link href="/image-2">Image 2</Link>
-      <Link href="/image-3">Image 3</Link>
+      <FlatList
+        numColumns={3}
+        data={images}
+        // style={{ marginTop: 10 }}
+        contentContainerStyle={{ gap: 5 }}
+        columnWrapperStyle={{ gap: 5 }}
+        renderItem={({ item }) => (
+          <Link asChild href={`/${item.name}`}>
+            <Pressable style={{ flex: 1, maxWidth: "33.33%" }}>
+              {item.type === "image" && (
+                <Image
+                  source={{ uri: item.uri }}
+                  style={{ aspectRatio: 3 / 4, borderRadius: 5 }}
+                />
+              )}
+
+              {item.type === "video" && (
+                <View
+                  style={{
+                    aspectRatio: 3 / 4,
+                    borderRadius: 5,
+                    maxWidth: "33.33%",
+                    // flex: 1,
+                  }}
+                >
+                  <VideoDisplay
+                    styles={{ aspectRatio: 3 / 4, borderRadius: 5, flex: 1 }}
+                    videoSource={item.uri}
+                  />
+                </View>
+              )}
+            </Pressable>
+          </Link>
+        )}
+        keyExtractor={({ name }) => name}
+      />
 
       <Link href="/camera" asChild>
         <Pressable style={styles.floatingButton}>

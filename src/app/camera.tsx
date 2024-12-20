@@ -1,25 +1,18 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import {
-  CameraView,
-  CameraType,
-  useCameraPermissions,
   CameraCapturedPicture,
   CameraMode,
+  CameraType,
+  CameraView,
+  useCameraPermissions,
   useMicrophonePermissions,
 } from "expo-camera";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import VideoScreen from "../components/VideoDisplay";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import PictureView from "../components/PictureView";
 
-interface Video {
+export interface Video {
   uri: string;
 }
 
@@ -48,13 +41,11 @@ export default function CameraPage() {
       if (!cameraRef.current) return;
 
       setRecording(true);
-      console.log("I ran");
       const res = await cameraRef.current.recordAsync();
-      console.log("I also ran");
-      console.log({ res });
+
       setVideo(res);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -62,6 +53,8 @@ export default function CameraPage() {
     if (!permission) return;
     const { granted, canAskAgain } = permission;
     if (!granted && canAskAgain) requestPermission();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permission]);
 
   useEffect(() => {
@@ -69,59 +62,54 @@ export default function CameraPage() {
 
     const { granted, canAskAgain } = micPermission;
     if (!granted && canAskAgain) requestMicPermission();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [micPermission]);
 
   if (!permission?.granted) return <ActivityIndicator />;
 
-  if (picture)
+  if (picture || video)
     return (
-      <View>
-        <Image
-          style={{ height: "100%", width: "100%" }}
-          source={{ uri: picture.uri }}
-        />
-
-        <MaterialIcons
-          name="close"
-          onPress={() => setPicture(undefined)}
-          size={35}
-          color="white"
-          style={styles.close}
-        />
-      </View>
+      <PictureView
+        picture={picture}
+        setPicture={setPicture}
+        video={video}
+        setVideo={setVideo}
+      />
     );
 
-  if (video)
-    return (
-      <View
-        style={{
-          height: "100%",
-          width: "100%",
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <VideoScreen videoSource={video.uri} />
+  // if (video)
+  //   return (
+  //     <View
+  //       style={{
+  //         height: "100%",
+  //         width: "100%",
+  //         flex: 1,
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //       }}
+  //     >
+  //       <VideoScreen videoSource={video.uri} />
 
-        <MaterialIcons
-          name="close"
-          onPress={() => setVideo(undefined)}
-          size={35}
-          color="white"
-          style={styles.close}
-        />
-      </View>
-    );
+  //       <MaterialIcons
+  //         name="close"
+  //         onPress={() => setVideo(undefined)}
+  //         size={35}
+  //         color="white"
+  //         style={styles.close}
+  //       />
+  //     </View>
+  //   );
   return (
     <View>
       <CameraView
         ref={cameraRef}
         style={styles.camera}
         facing={facing}
-        mirror
+        mirror={mode === "picture"}
         animateShutter={false}
         mode={mode}
+        flash="auto"
       >
         <View style={styles.footer}>
           <MaterialIcons
