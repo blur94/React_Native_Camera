@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepare": "husky"
   },
   "dependencies": {
     "expo": "~52.0.19",
@@ -33,6 +34,9 @@
     "eslint": "^8.57.0",
     "eslint-config-expo": "~8.0.1",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "husky": "^9.1.7",
+    "install": "^0.13.0",
+    "lint-staged": "^15.2.11",
     "typescript": "^5.3.3"
   },
   "private": true
