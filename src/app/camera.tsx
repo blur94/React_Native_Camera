@@ -3,8 +3,10 @@ import {
   CameraType,
   useCameraPermissions,
   CameraCapturedPicture,
+  CameraMode,
+  useMicrophonePermissions,
 } from "expo-camera";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import {
@@ -15,11 +17,20 @@ import {
   Text,
   View,
 } from "react-native";
+import VideoScreen from "../components/VideoDisplay";
+
+interface Video {
+  uri: string;
+}
 
 export default function CameraPage() {
   const [permission, requestPermission] = useCameraPermissions();
+  const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [facing, setFacing] = useState<CameraType>("back");
+  const [mode, setMode] = useState<CameraMode>("picture");
   const [picture, setPicture] = useState<CameraCapturedPicture>();
+  const [video, setVideo] = useState<Video>();
+  const [recording, setRecording] = useState(false);
   const cameraRef = useRef<CameraView>(null);
 
   const toggleCameraFacing = () =>
@@ -32,11 +43,33 @@ export default function CameraPage() {
     setPicture(res);
   };
 
+  const takeVideo = async () => {
+    try {
+      if (!cameraRef.current) return;
+
+      setRecording(true);
+      console.log("I ran");
+      const res = await cameraRef.current.recordAsync();
+      console.log("I also ran");
+      console.log({ res });
+      setVideo(res);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     if (!permission) return;
     const { granted, canAskAgain } = permission;
     if (!granted && canAskAgain) requestPermission();
   }, [permission]);
+
+  useEffect(() => {
+    if (!micPermission) return;
+
+    const { granted, canAskAgain } = micPermission;
+    if (!granted && canAskAgain) requestMicPermission();
+  }, [micPermission]);
 
   if (!permission?.granted) return <ActivityIndicator />;
 
@@ -57,6 +90,29 @@ export default function CameraPage() {
         />
       </View>
     );
+
+  if (video)
+    return (
+      <View
+        style={{
+          height: "100%",
+          width: "100%",
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <VideoScreen videoSource={video.uri} />
+
+        <MaterialIcons
+          name="close"
+          onPress={() => setVideo(undefined)}
+          size={35}
+          color="white"
+          style={styles.close}
+        />
+      </View>
+    );
   return (
     <View>
       <CameraView
@@ -65,11 +121,49 @@ export default function CameraPage() {
         facing={facing}
         mirror
         animateShutter={false}
-        mode="video"
+        mode={mode}
       >
         <View style={styles.footer}>
-          <View />
-          <Pressable style={styles.recordButton} onPress={takePicture} />
+          <MaterialIcons
+            name="switch-camera"
+            size={30}
+            color="white"
+            onPress={() =>
+              setMode((prev) => (prev === "picture" ? "video" : "picture"))
+            }
+          />
+
+          {mode === "picture" ? (
+            <MaterialIcons
+              name="camera"
+              size={50}
+              color="black"
+              onPress={takePicture}
+              style={styles.recordButton}
+            />
+          ) : (
+            <MaterialIcons
+              name={recording ? "square" : "fiber-manual-record"}
+              size={recording ? 30 : 50}
+              color="red"
+              onPress={() => {
+                if (!recording) {
+                  takeVideo();
+                } else {
+                  setRecording(false);
+                  cameraRef.current?.stopRecording();
+                }
+              }}
+              style={[
+                styles.recordButton,
+                recording && {
+                  paddingInlineStart: 10,
+                  paddingBlockStart: 10,
+                },
+              ]}
+            />
+          )}
+
           <MaterialIcons
             name="flip-camera-ios"
             size={24}
@@ -114,5 +208,6 @@ const styles = StyleSheet.create({
     width: 50,
     borderRadius: 50,
     backgroundColor: "white",
+    padding: "auto",
   },
 });

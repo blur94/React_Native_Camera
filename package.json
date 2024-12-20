@@ -20,7 +20,8 @@
     "expo-constants": "~17.0.3",
     "react-native-web": "~0.19.13",
     "react-dom": "18.3.1",
-    "expo-camera": "~16.0.10"
+    "expo-camera": "~16.0.10",
+    "expo-video": "~2.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
