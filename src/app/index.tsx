@@ -7,6 +7,7 @@ import {
   View,
   Image,
   FlatList,
+  Button,
 } from "react-native";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
@@ -38,8 +39,6 @@ export default function HomePage() {
         type: getMediaType(file),
       }))
     );
-
-    console.log(files);
   };
 
   useFocusEffect(
@@ -63,31 +62,8 @@ export default function HomePage() {
           },
 
           headerTitle: () => <LogoTitle />,
-          headerRight: () => (
-            <Pressable
-              onPress={() => setCount((c) => c + 1)}
-              onLongPress={() => {
-                intervalRef.current = setInterval(
-                  () => setCount((c) => c + 1),
-                  1000
-                );
-              }}
-              onPressOut={() => {
-                if (intervalRef.current) {
-                  clearInterval(intervalRef.current);
-                  intervalRef.current = null;
-                }
-              }}
-            >
-              <AntDesign name="pluscircle" size={24} color="black" />
-            </Pressable>
-          ),
         }}
       />
-
-      <Text style={{ fontSize: 15, fontWeight: "500", marginBlock: 20 }}>
-        Count: {count}
-      </Text>
 
       <FlatList
         numColumns={3}
