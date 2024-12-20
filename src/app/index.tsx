@@ -28,6 +28,8 @@ export default function HomePage() {
         type: getMediaType(file),
       }))
     );
+
+    console.log(files);
   };
 
   useFocusEffect(
